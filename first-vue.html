@@ -13,20 +13,46 @@
 <body>
     <div id="app">
         <header>
-            <h1 v-text="sitename"></h1>
+            <div class="navbar navbar-defaul">
+                <div class="navbar-header">
+                    <h1>{{ sitename }}</h1>
+                  </div>
+            </div>
+            <div class="nav navbar-nav navbar-right cart">
+                <button
+                    type="button"
+                    class="btn btn-default btn-lg"
+                    @click="showCheckout">
+                    <span class="glyphicon glyphicon-shopping-cart">{{ cartItemCount}}</span> 
+                    Checkout
+                </button>
+                
+            </div>
         </header>
         <main>
             <div class="row product">
-                <div class="col-md-2 col-md-offset-1">
-                    <figure>
-                        <img v-bind:src="product.image">
-                    </figure>
+                <div v-if="showProduct">
+                    <div class="col-md-2 col-md-offset-1">
+                        <figure>
+                            <img v-bind:src="product.image">
+                        </figure>
+                    </div>
+                    <div class="col-md-6 col-md-offset-2 description">
+                        <h1>{{ product.title }}</h1>
+                        <p v-html="product.description"></p>
+                        <p class="price"> {{ product.price | formatPrice }} </p>
+                        <button class="default btn btn-primary btn-lg" 
+                                v-on:click="addToCart"
+                                v-if="canAddToCart">
+                            Add To Cart
+                        </button>
+                        <button class="default btn btn-primary btn-lg disabled" 
+                                v-else>
+                            Add To Cart
+                        </button>
+                    </div>
                 </div>
-                <div class="col-md-6 col-md-offset-2 description">
-                    <h1>{{ product.title }}</h1>
-                    <p v-html="product.description"></p>
-                    <p class="price"> {{ product.price | formatPrice }} </p>
-                </div>
+                <div v-else></div>
             </div>
         </main>
     </div>
@@ -44,8 +70,11 @@
                     description: 'A 25 pound bag of <em>irresistible</em>, '+
                                  'organic goodness for your cat.',
                     price: 2000,
-                    image: 'assets/images/product-fullsize.png'
-                }
+                    image: 'assets/images/product-fullsize.png',
+                    availableInventory: 5,
+                },
+                cart: [],
+                showProduct: true,
             },
             filters: {
                 formatPrice: function(price) {
@@ -64,6 +93,22 @@
                         return "$" + (price / 100).toFixed(2);
                     }
                 }
+            },
+            methods: {
+                addToCart: function() {
+                    this.cart.push(this.product.id);
+                },
+                showCheckout: function() {
+                    this.showProduct = this.showProduct ? false : true;
+                },
+            },
+            computed: {
+                cartItemCount: function() {
+                    return this.cart.length || '';
+                },
+                canAddToCart() {
+                  return this.product.availableInventory > this.cartItemCount;  
+                },
             },
             beforeCreate: function() {
                 if (APP_LOG_LIFECYCLE_EVENTS) {
